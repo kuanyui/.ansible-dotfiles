@@ -1,13 +1,5 @@
 ---
-- name: Verify required variables are set
-  ansible.builtin.assert:
-    that:
-      - target_home != ""
-      - target_user != ""
-      - target_group != ""
-    msg: "target_home, target_user, target_group must all be set by the calling playbook"
-
-- name: Find directories in static dotfiles
+- name: Find directories in static emacs config
   ansible.builtin.find:
     paths: "{{ role_path }}/files"
     file_type: directory
@@ -15,18 +7,18 @@
     hidden: true
   delegate_to: localhost
   become: false
-  register: _dotfile_static_dirs
+  register: _emacs_static_dirs
 
-- name: Create directories for static files
+- name: Create directories for static emacs config
   ansible.builtin.file:
     path: "{{ target_home }}{{ item.path | replace(role_path + '/files', '') }}"
     state: directory
     owner: "{{ target_user }}"
     group: "{{ target_group }}"
     mode: "0755"
-  loop: "{{ _dotfile_static_dirs.files }}"
+  loop: "{{ _emacs_static_dirs.files }}"
 
-- name: Find static dotfiles
+- name: Find static emacs config files
   ansible.builtin.find:
     paths: "{{ role_path }}/files"
     file_type: file
@@ -34,9 +26,9 @@
     hidden: true
   delegate_to: localhost
   become: false
-  register: _dotfile_static_files
+  register: _emacs_static_files
 
-- name: Deploy static dotfiles
+- name: Deploy static emacs config
   ansible.builtin.copy:
     src: "{{ item.path }}"
     dest: "{{ target_home }}{{ item.path | replace(role_path + '/files', '') }}"
@@ -45,9 +37,9 @@
     mode: preserve
     follow: false
     force: true
-  loop: "{{ _dotfile_static_files.files }}"
+  loop: "{{ _emacs_static_files.files }}"
 
-- name: Find directories in templated dotfiles
+- name: Find directories in templated emacs config
   ansible.builtin.find:
     paths: "{{ role_path }}/templates"
     file_type: directory
@@ -55,18 +47,18 @@
     hidden: true
   delegate_to: localhost
   become: false
-  register: _dotfile_template_dirs
+  register: _emacs_template_dirs
 
-- name: Create directories for templated dotfiles
+- name: Create directories for templated emacs config
   ansible.builtin.file:
     path: "{{ target_home }}{{ item.path | replace(role_path + '/templates', '') }}"
     state: directory
     owner: "{{ target_user }}"
     group: "{{ target_group }}"
     mode: "0755"
-  loop: "{{ _dotfile_template_dirs.files }}"
+  loop: "{{ _emacs_template_dirs.files }}"
 
-- name: Find templated dotfiles
+- name: Find templated emacs config files
   ansible.builtin.find:
     paths: "{{ role_path }}/templates"
     file_type: file
@@ -74,9 +66,9 @@
     hidden: true
   delegate_to: localhost
   become: false
-  register: _dotfile_template_files
+  register: _emacs_template_files
 
-- name: Deploy templated dotfiles
+- name: Deploy templated emacs config
   ansible.builtin.template:
     src: "{{ item.path }}"
     dest: |-
@@ -85,4 +77,4 @@
     group: "{{ target_group }}"
     mode: "0644"
     force: true
-  loop: "{{ _dotfile_template_files.files }}"
+  loop: "{{ _emacs_template_files.files }}"
